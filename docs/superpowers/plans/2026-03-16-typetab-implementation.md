@@ -27,7 +27,7 @@
 - [ ] **Step 1: 创建目录结构**
 
 ```bash
-mkdir -p background content popup options icons
+mkdir -p background content popup options icons lib scripts
 ```
 
 - [ ] **Step 2: 创建 manifest.json**
@@ -38,7 +38,7 @@ mkdir -p background content popup options icons
   "name": "TypeTab",
   "version": "1.0.0",
   "description": "Quick tab search and duplicate tab management",
-  "permissions": ["tabs", "storage", "notifications", "scripting"],
+  "permissions": ["tabs", "storage", "notifications", "scripting", "windows"],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -144,16 +144,156 @@ console.log('TypeTab options loaded');
 
 - [ ] **Step 4: 生成插件图标**
 
-使用 Canvas API 生成简单的 "T" 字母图标（16x16、48x48、128x128），蓝色背景白色文字。通过一个临时 Node/bun 脚本生成 PNG 文件到 `icons/` 目录。
+使用 SVG 生成 PNG 图标（16x16、48x48、128x128），蓝色背景白色 "T" 字母。
 
+`scripts/generate-icons.js`:
 ```javascript
-// scripts/generate-icons.js
 // 使用 bun 运行: bun run scripts/generate-icons.js
+import { writeFileSync } from 'fs';
+
+// 生成 SVG 字符串
+function createSvg(size) {
+  const fontSize = Math.round(size * 0.6);
+  const radius = Math.round(size * 0.15);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <rect width="${size}" height="${size}" rx="${radius}" fill="#4285f4"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-weight="bold"
+        font-size="${fontSize}px" fill="white">T</text>
+</svg>`;
+}
+
+// 将 SVG 写为文件（Chrome 插件支持 SVG 作为图标源，但需要 PNG 提交 Web Store）
+// 方案：先生成 SVG，再用 resvg-js 转 PNG
+async function main() {
+  const sizes = [16, 48, 128];
+
+  // 尝试使用 resvg-js 转 PNG
+  let Resvg;
+  try {
+    const mod = await import('@aspect-build/rules_js/../resvg-js');
+    Resvg = mod.Resvg;
+  } catch {
+    try {
+      const mod = await import('@aspect-build/resvg-js');
+      Resvg = mod.Resvg;
+    } catch {
+      // 如果没有 resvg-js，直接写 SVG 并提示用户手动转换
+      for (const size of sizes) {
+        const svg = createSvg(size);
+        writeFileSync(`icons/icon-${size}.svg`, svg);
+      }
+      console.log('SVG 图标已生成到 icons/ 目录。');
+      console.log('请手动将 SVG 转为 PNG，或运行: bun add -d @aspect-build/resvg-js 后重新执行。');
+      console.log('或者使用在线工具如 https://svgtopng.com 转换。');
+
+      // 同时生成极简 PNG（1x1 蓝色像素拉伸，仅用于开发阶段加载插件不报错）
+      // PNG 文件头 + IHDR + IDAT + IEND 最小化
+      for (const size of sizes) {
+        const svg = createSvg(size);
+        writeFileSync(`icons/icon-${size}.svg`, svg);
+      }
+      // 生成简单的纯蓝色 PNG 作为占位图标
+      for (const size of sizes) {
+        const png = createMinimalPng(size);
+        writeFileSync(`icons/icon-${size}.png`, png);
+      }
+      console.log('已生成占位 PNG 图标，可在开发阶段使用。发布前请替换为正式图标。');
+      return;
+    }
+  }
+
+  for (const size of sizes) {
+    const svg = createSvg(size);
+    const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: size } });
+    const pngData = resvg.render();
+    writeFileSync(`icons/icon-${size}.png`, pngData.asPng());
+    console.log(`生成 icons/icon-${size}.png`);
+  }
+}
+
+// 生成最小 PNG（纯蓝色方块，用于开发阶段占位）
+function createMinimalPng(size) {
+  // 使用 bun 内置能力生成简单 PNG
+  // 这里用最简方式：创建未压缩的 PNG
+  const { deflateSync } = require('zlib');
+
+  // RGBA 像素数据：蓝色 #4285f4
+  const rowSize = size * 4 + 1; // 每行：filter byte + RGBA * width
+  const rawData = Buffer.alloc(rowSize * size);
+  for (let y = 0; y < size; y++) {
+    rawData[y * rowSize] = 0; // filter: none
+    for (let x = 0; x < size; x++) {
+      const offset = y * rowSize + 1 + x * 4;
+      rawData[offset] = 0x42;     // R
+      rawData[offset + 1] = 0x85; // G
+      rawData[offset + 2] = 0xf4; // B
+      rawData[offset + 3] = 0xff; // A
+    }
+  }
+
+  const compressed = deflateSync(rawData);
+
+  // 构建 PNG
+  const chunks = [];
+
+  // PNG 签名
+  chunks.push(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+
+  // IHDR
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(size, 0);  // width
+  ihdr.writeUInt32BE(size, 4);  // height
+  ihdr[8] = 8;  // bit depth
+  ihdr[9] = 6;  // color type: RGBA
+  ihdr[10] = 0; // compression
+  ihdr[11] = 0; // filter
+  ihdr[12] = 0; // interlace
+  chunks.push(createPngChunk('IHDR', ihdr));
+
+  // IDAT
+  chunks.push(createPngChunk('IDAT', compressed));
+
+  // IEND
+  chunks.push(createPngChunk('IEND', Buffer.alloc(0)));
+
+  return Buffer.concat(chunks);
+}
+
+function createPngChunk(type, data) {
+  const { crc32 } = require('buffer');
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length, 0);
+  const typeBytes = Buffer.from(type, 'ascii');
+  const typeAndData = Buffer.concat([typeBytes, data]);
+
+  // CRC32
+  let crc = 0xffffffff;
+  for (const byte of typeAndData) {
+    crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 0xff];
+  }
+  crc = (crc ^ 0xffffffff) >>> 0;
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(crc, 0);
+
+  return Buffer.concat([length, typeAndData, crcBuf]);
+}
+
+// CRC32 查找表
+const crcTable = new Uint32Array(256);
+for (let i = 0; i < 256; i++) {
+  let c = i;
+  for (let j = 0; j < 8; j++) {
+    c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+  }
+  crcTable[i] = c;
+}
+
+main();
 ```
 
-或者使用 SVG 转 PNG 工具。图标设计要求：
-- 圆角矩形蓝色背景 (#4285f4)
-- 白色粗体 "T" 字母居中
+运行：`bun run scripts/generate-icons.js`
+预期：`icons/` 下生成 icon-16.png、icon-48.png、icon-128.png（蓝色方块占位图标）
 
 - [ ] **Step 5: 验证插件可加载**
 
@@ -166,7 +306,7 @@ console.log('TypeTab options loaded');
 - [ ] **Step 6: 提交**
 
 ```bash
-git add manifest.json background/ content/ popup/ options/ icons/
+git add manifest.json background/ content/ popup/ options/ icons/ scripts/ lib/
 git commit -m "feat: scaffold TypeTab Chrome extension project structure"
 ```
 
@@ -180,14 +320,14 @@ git commit -m "feat: scaffold TypeTab Chrome extension project structure"
 - Create: `lib/search.js`
 - Create: `lib/search.test.js`
 
-搜索逻辑提取为纯函数，可在 Service Worker 和测试环境中共享。Service Worker 通过 `importScripts` 或 ES module 引入。
+搜索逻辑和 URL 匹配逻辑提取为纯函数，可在 Service Worker 和测试环境中共享。Service Worker 通过 `importScripts` 引入（MV3 Service Worker 不支持 ES module import，需用 `importScripts`）。Content Script 和 Popup 内联搜索算法副本（因为它们无法 import Service Worker 的模块）。
 
 - [ ] **Step 1: 编写搜索函数的测试**
 
 `lib/search.test.js`:
 ```javascript
 import { describe, test, expect } from 'bun:test';
-import { searchTabs, normalizeUrl, matchesDomain } from './search.js';
+import { searchTabs, normalizeUrl, matchesDomain, isDuplicate } from './search.js';
 
 // 模拟 Tab 数据
 const mockTabs = [
@@ -278,6 +418,32 @@ describe('matchesDomain', () => {
 
   test('子域名视为不同', () => {
     expect(matchesDomain('https://docs.google.com', 'https://mail.google.com')).toBe(false);
+  });
+});
+
+describe('isDuplicate', () => {
+  test('exact_url 模式：相同 URL 返回 true', () => {
+    expect(isDuplicate('https://foo.com/page', 'https://foo.com/page', 'exact_url')).toBe(true);
+  });
+
+  test('exact_url 模式：不同 hash 视为相同', () => {
+    expect(isDuplicate('https://foo.com/page#a', 'https://foo.com/page#b', 'exact_url')).toBe(true);
+  });
+
+  test('exact_url 模式：不同路径返回 false', () => {
+    expect(isDuplicate('https://foo.com/a', 'https://foo.com/b', 'exact_url')).toBe(false);
+  });
+
+  test('domain 模式：相同域名返回 true', () => {
+    expect(isDuplicate('https://foo.com/a', 'https://foo.com/b', 'domain')).toBe(true);
+  });
+
+  test('domain 模式：不同域名返回 false', () => {
+    expect(isDuplicate('https://foo.com/a', 'https://bar.com/b', 'domain')).toBe(false);
+  });
+
+  test('空 URL 返回 false', () => {
+    expect(isDuplicate('', 'https://foo.com', 'exact_url')).toBe(false);
   });
 });
 ```
@@ -375,6 +541,21 @@ export function matchesDomain(url1, url2) {
   } catch {
     return false;
   }
+}
+
+/**
+ * 判断两个 URL 是否重复（根据匹配规则）
+ * @param {string} url1
+ * @param {string} url2
+ * @param {'exact_url'|'domain'} matchRule
+ * @returns {boolean}
+ */
+export function isDuplicate(url1, url2, matchRule) {
+  if (!url1 || !url2) return false;
+  if (matchRule === 'domain') {
+    return matchesDomain(url1, url2);
+  }
+  return normalizeUrl(url1) === normalizeUrl(url2);
 }
 ```
 
@@ -914,6 +1095,26 @@ git commit -m "feat: implement service worker command handler and messaging"
 
 - [ ] **Step 1: 在 Service Worker 中添加重复 Tab 检测逻辑**
 
+在 `background/service-worker.js` 顶部添加 `importScripts('../lib/search.js');`（需要先将 `lib/search.js` 改为 IIFE 导出到全局变量，见下方说明）。
+
+由于 MV3 Service Worker 使用 `importScripts` 而非 ES module，需要在 `lib/search.js` 顶部加一个全局导出兼容层：
+
+在 `lib/search.js` 文件末尾追加：
+```javascript
+// Service Worker importScripts 兼容：将函数挂到 globalThis
+if (typeof globalThis !== 'undefined') {
+  globalThis.searchTabs = searchTabs;
+  globalThis.normalizeUrl = normalizeUrl;
+  globalThis.matchesDomain = matchesDomain;
+  globalThis.isDuplicate = isDuplicate;
+}
+```
+
+然后在 `background/service-worker.js` 顶部添加：
+```javascript
+importScripts('../lib/search.js');
+```
+
 在 `background/service-worker.js` 末尾追加：
 
 ```javascript
@@ -1007,37 +1208,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
-/**
- * 判断两个 URL 是否重复
- */
-function isDuplicate(url1, url2, matchRule) {
-  if (!url1 || !url2) return false;
-
-  if (matchRule === 'domain') {
-    try {
-      return new URL(url1).hostname === new URL(url2).hostname;
-    } catch {
-      return false;
-    }
-  }
-
-  // exact_url: 去掉 hash 和尾部斜杠后比较
-  return normalizeUrl(url1) === normalizeUrl(url2);
-}
-
-function normalizeUrl(url) {
-  if (!url) return '';
-  let normalized = url.split('#')[0];
-  if (normalized.endsWith('/')) {
-    normalized = normalized.slice(0, -1);
-  }
-  return normalized;
-}
+// isDuplicate 和 normalizeUrl 由 importScripts('../lib/search.js') 引入，无需重复定义
 ```
 
 - [ ] **Step 2: 在 Content Script 中实现重复 Tab 提示条**
 
-在 `content/content.js` 中，替换 `showDuplicatePrompt` 的占位实现：
+在 `content/content.js` 的 IIFE 内部，做以下两处修改：
+1. 找到 `showDuplicatePrompt` 函数（占位实现，函数体只有注释），替换为下方完整实现
+2. 在 IIFE 内部、`showDuplicatePrompt` 函数之后，添加 `getDuplicatePromptStyles` 函数
+
+注意：这两个函数必须在 IIFE 内部，与 `shadowRoot`、`container`、`escapeHtml`、`getStyles` 等变量在同一闭包作用域中。
 
 ```javascript
 function showDuplicatePrompt(existingTabId, newTabId, title) {
@@ -1403,6 +1583,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (items[selectedIndex]) {
         switchToTab(parseInt(items[selectedIndex].dataset.tabId, 10));
       }
+    } else if (e.key === 'Escape') {
+      window.close();
     }
   });
 });
@@ -1719,18 +1901,18 @@ git commit -m "feat: implement options page with settings persistence"
 | 域名匹配 | 同域名拦截 |
 | 跨窗口搜索和切换 | 能搜索到其他窗口的 Tab |
 
-- [ ] **Step 2: 修复测试中发现的问题**
+- [ ] **Step 2: 修复测试中发现的问题（如无 bug 则跳过）**
 
-根据集成测试结果修复 bug。
+根据集成测试结果修复 bug。如果所有场景通过，跳过此步骤。
 
 - [ ] **Step 3: 生成正式图标**
 
 确保 `icons/` 下有 16x16、48x48、128x128 三种尺寸的 PNG 图标。
 
-- [ ] **Step 4: 提交**
+- [ ] **Step 4: 提交（如有修改）**
 
 ```bash
-git add -A
+git add manifest.json background/ content/ popup/ options/ lib/ icons/
 git commit -m "fix: integration test fixes and polish"
 ```
 
@@ -1742,9 +1924,9 @@ bun test lib/search.test.js
 
 预期：全部 PASS。
 
-- [ ] **Step 6: 最终提交**
+- [ ] **Step 6: 最终提交（如有修改）**
 
 ```bash
-git add -A
+git add manifest.json background/ content/ popup/ options/ lib/ icons/
 git commit -m "chore: ready for Chrome Web Store submission"
 ```
