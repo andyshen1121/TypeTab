@@ -48,7 +48,8 @@ mkdir -p background content popup options icons lib scripts
     }
   },
   "background": {
-    "service_worker": "background/service-worker.js"
+    "service_worker": "background/service-worker.js",
+    "type": "module"
   },
   "commands": {
     "open-search": {
@@ -212,10 +213,35 @@ async function main() {
   }
 }
 
+// CRC32 查找表（必须在 createPngChunk 之前初始化）
+const crcTable = new Uint32Array(256);
+for (let i = 0; i < 256; i++) {
+  let c = i;
+  for (let j = 0; j < 8; j++) {
+    c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+  }
+  crcTable[i] = c;
+}
+
+function createPngChunk(type, data) {
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length, 0);
+  const typeBytes = Buffer.from(type, 'ascii');
+  const typeAndData = Buffer.concat([typeBytes, data]);
+
+  let crc = 0xffffffff;
+  for (const byte of typeAndData) {
+    crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 0xff];
+  }
+  crc = (crc ^ 0xffffffff) >>> 0;
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(crc, 0);
+
+  return Buffer.concat([length, typeAndData, crcBuf]);
+}
+
 // 生成最小 PNG（纯蓝色方块，用于开发阶段占位）
 function createMinimalPng(size) {
-  // 使用 bun 内置能力生成简单 PNG
-  // 这里用最简方式：创建未压缩的 PNG
   const { deflateSync } = require('zlib');
 
   // RGBA 像素数据：蓝色 #4285f4
@@ -260,35 +286,6 @@ function createMinimalPng(size) {
   return Buffer.concat(chunks);
 }
 
-function createPngChunk(type, data) {
-  const { crc32 } = require('buffer');
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length, 0);
-  const typeBytes = Buffer.from(type, 'ascii');
-  const typeAndData = Buffer.concat([typeBytes, data]);
-
-  // CRC32
-  let crc = 0xffffffff;
-  for (const byte of typeAndData) {
-    crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 0xff];
-  }
-  crc = (crc ^ 0xffffffff) >>> 0;
-  const crcBuf = Buffer.alloc(4);
-  crcBuf.writeUInt32BE(crc, 0);
-
-  return Buffer.concat([length, typeAndData, crcBuf]);
-}
-
-// CRC32 查找表
-const crcTable = new Uint32Array(256);
-for (let i = 0; i < 256; i++) {
-  let c = i;
-  for (let j = 0; j < 8; j++) {
-    c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
-  }
-  crcTable[i] = c;
-}
-
 main();
 ```
 
@@ -320,7 +317,7 @@ git commit -m "feat: scaffold TypeTab Chrome extension project structure"
 - Create: `lib/search.js`
 - Create: `lib/search.test.js`
 
-搜索逻辑和 URL 匹配逻辑提取为纯函数，可在 Service Worker 和测试环境中共享。Service Worker 通过 `importScripts` 引入（MV3 Service Worker 不支持 ES module import，需用 `importScripts`）。Content Script 和 Popup 内联搜索算法副本（因为它们无法 import Service Worker 的模块）。
+搜索逻辑和 URL 匹配逻辑提取为纯函数（ES module）。Service Worker 声明为 module worker（manifest `"type": "module"`），可直接 `import` 引入。Content Script 和 Popup 内联搜索算法副本（因为它们无法 import 扩展内部模块）。bun 测试也直接 `import` 同一文件。
 
 - [ ] **Step 1: 编写搜索函数的测试**
 
@@ -1095,27 +1092,14 @@ git commit -m "feat: implement service worker command handler and messaging"
 
 - [ ] **Step 1: 在 Service Worker 中添加重复 Tab 检测逻辑**
 
-在 `background/service-worker.js` 顶部添加 `importScripts('../lib/search.js');`（需要先将 `lib/search.js` 改为 IIFE 导出到全局变量，见下方说明）。
+manifest.json 中 `background` 声明了 `"type": "module"`，Service Worker 可以直接使用 ES module `import`。
 
-由于 MV3 Service Worker 使用 `importScripts` 而非 ES module，需要在 `lib/search.js` 顶部加一个全局导出兼容层：
-
-在 `lib/search.js` 文件末尾追加：
+在 `background/service-worker.js` 顶部添加：
 ```javascript
-// Service Worker importScripts 兼容：将函数挂到 globalThis
-if (typeof globalThis !== 'undefined') {
-  globalThis.searchTabs = searchTabs;
-  globalThis.normalizeUrl = normalizeUrl;
-  globalThis.matchesDomain = matchesDomain;
-  globalThis.isDuplicate = isDuplicate;
-}
+import { isDuplicate } from '../lib/search.js';
 ```
 
-然后在 `background/service-worker.js` 顶部添加：
-```javascript
-importScripts('../lib/search.js');
-```
-
-在 `background/service-worker.js` 末尾追加：
+然后在 `background/service-worker.js` 末尾追加：
 
 ```javascript
 // ===== 重复 Tab 检测 =====
@@ -1195,15 +1179,29 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       });
 
       // 监听通知按钮点击
-      chrome.notifications.onButtonClicked.addListener(function handler(notifId, btnIndex) {
-        if (notifId === `typetab-dup-${tabId}` && btnIndex === 0) {
+      const notifId = `typetab-dup-${tabId}`;
+      function onButtonClicked(id, btnIndex) {
+        if (id !== notifId) return;
+        if (btnIndex === 0) {
+          // "切换"按钮
           chrome.tabs.update(existingTab.id, { active: true }).then((t) => {
             chrome.windows.update(t.windowId, { focused: true });
             chrome.tabs.remove(tabId).catch(() => {});
           }).catch(() => {});
-          chrome.notifications.onButtonClicked.removeListener(handler);
         }
-      });
+        // btnIndex === 1 为"保留"，不做处理
+        cleanup();
+      }
+      function onClosed(id) {
+        if (id !== notifId) return;
+        cleanup();
+      }
+      function cleanup() {
+        chrome.notifications.onButtonClicked.removeListener(onButtonClicked);
+        chrome.notifications.onClosed.removeListener(onClosed);
+      }
+      chrome.notifications.onButtonClicked.addListener(onButtonClicked);
+      chrome.notifications.onClosed.addListener(onClosed);
     }
   }
 });
