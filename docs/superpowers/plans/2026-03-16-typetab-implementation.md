@@ -151,6 +151,7 @@ console.log('TypeTab options loaded');
 ```javascript
 // 使用 bun 运行: bun run scripts/generate-icons.js
 import { writeFileSync } from 'fs';
+import { deflateSync } from 'zlib';
 
 // 生成 SVG 字符串
 function createSvg(size) {
@@ -242,7 +243,6 @@ function createPngChunk(type, data) {
 
 // 生成最小 PNG（纯蓝色方块，用于开发阶段占位）
 function createMinimalPng(size) {
-  const { deflateSync } = require('zlib');
 
   // RGBA 像素数据：蓝色 #4285f4
   const rowSize = size * 4 + 1; // 每行：filter byte + RGBA * width
@@ -1206,7 +1206,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
-// isDuplicate 和 normalizeUrl 由 importScripts('../lib/search.js') 引入，无需重复定义
+// isDuplicate 由顶部 import { isDuplicate } from '../lib/search.js' 引入
 ```
 
 - [ ] **Step 2: 在 Content Script 中实现重复 Tab 提示条**
