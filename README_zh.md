@@ -92,6 +92,10 @@ TypeTab/
 - Shadow DOM 样式隔离
 - Chrome APIs: tabs, storage, notifications, scripting, commands, windows
 
+## 隐私
+
+TypeTab 完全在本地运行，不收集、存储或传输任何个人数据。所有标签页信息仅在浏览器内处理，不会离开你的设备。无分析、无追踪、无外部服务器。
+
 ## License
 
 MIT

@@ -92,6 +92,10 @@ TypeTab/
 - Shadow DOM for style isolation
 - Chrome APIs: tabs, storage, notifications, scripting, commands, windows
 
+## Privacy
+
+TypeTab works entirely locally. It does not collect, store, or transmit any personal data. All tab information is processed in your browser and never leaves your device. No analytics, no tracking, no external servers.
+
 ## License
 
 MIT
