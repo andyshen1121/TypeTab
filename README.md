@@ -20,7 +20,7 @@ When you have dozens of tabs open, TypeTab helps you find and switch to the righ
 
 1. Clone this repo:
    ```bash
-   git clone https://github.com/your-username/TypeTab.git
+   git clone https://github.com/andyshen1121/TypeTab.git
    cd TypeTab
    ```
 
