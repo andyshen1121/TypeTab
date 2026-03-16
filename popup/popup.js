@@ -52,7 +52,7 @@ function renderResults(tabs) {
   resultsEl.innerHTML = tabs.map((tab, index) => `
     <div class="result-item ${index === selectedIndex ? 'selected' : ''}" data-tab-id="${tab.id}" data-index="${index}">
       ${tab.favIconUrl
-        ? `<img class="favicon" src="${tab.favIconUrl}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="favicon-fallback" style="display:none">&#127760;</div>`
+        ? `<img class="favicon" src="${escapeHtml(tab.favIconUrl)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="favicon-fallback" style="display:none">&#127760;</div>`
         : '<div class="favicon-fallback">&#127760;</div>'
       }
       <div class="info">

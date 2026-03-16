@@ -62,6 +62,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.update(message.tabId, { active: true }).then((tab) => {
       // 同时切换到该 Tab 所在的窗口
       chrome.windows.update(tab.windowId, { focused: true });
+    }).catch(() => {
+      // Tab 可能已被关闭，静默忽略
     });
     return false;
   }

@@ -206,7 +206,7 @@ if (window.__typetab_loaded) {
     resultsEl.innerHTML = tabs.map((tab, index) => `
       <div class="result-item ${index === selectedIndex ? 'selected' : ''}" data-tab-id="${tab.id}" data-index="${index}">
         ${tab.favIconUrl
-          ? `<img class="favicon" src="${tab.favIconUrl}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="favicon-fallback" style="display:none">&#127760;</div>`
+          ? `<img class="favicon" src="${escapeHtml(tab.favIconUrl)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="favicon-fallback" style="display:none">&#127760;</div>`
           : '<div class="favicon-fallback">&#127760;</div>'
         }
         <div class="info">
@@ -284,6 +284,7 @@ if (window.__typetab_loaded) {
     spotlightOpen = false;
     tabCache = [];
     selectedIndex = 0;
+    clearTimeout(debounceTimer);
 
     const overlay = shadowRoot.getElementById('overlay');
     overlay.classList.add('hidden');
