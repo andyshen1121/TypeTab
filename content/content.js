@@ -89,6 +89,10 @@ if (window.__typetab_loaded) {
         padding-top: 15vh;
         z-index: 2147483647;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        text-align: left;
+        line-height: normal;
+        letter-spacing: normal;
+        word-spacing: normal;
       }
       .overlay.hidden { display: none; }
       .spotlight {
@@ -391,10 +395,10 @@ if (window.__typetab_loaded) {
       prompt.remove();
     });
 
-    // 5 秒后自动消失
+    // 10 秒后自动消失
     setTimeout(() => {
       if (prompt.parentNode) prompt.remove();
-    }, 5000);
+    }, 10000);
   }
 
   function getDuplicatePromptStyles() {

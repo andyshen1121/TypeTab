@@ -8,9 +8,9 @@ When you have dozens of tabs open, TypeTab helps you find and switch to the righ
 
 ## Features
 
-- **Spotlight Search** - Press `Ctrl+Shift+K` (Mac: `Cmd+Shift+K`) to open a Spotlight-style search overlay. Search by tab title or URL with fuzzy matching.
-- **Duplicate Tab Detection** - When you open a page that's already open in another tab, TypeTab can prompt you to switch or silently redirect.
-- **Configurable Settings** - Choose between prompt or silent interception mode, URL-exact or domain-level matching, and toggle the feature on/off.
+- **Spotlight Search** - Press `Ctrl+Shift+K` (Mac: `Cmd+Shift+K`) to open a Spotlight-style search overlay. Search by tab title or URL with fuzzy matching. On restricted pages (e.g. `chrome://`), falls back to a popup search.
+- **Duplicate Tab Detection** - When you navigate to a URL that's already open, TypeTab detects it instantly and can prompt you to switch or silently redirect. Silent mode acts before the page even loads.
+- **Configurable Settings** - Click the toolbar icon to access Search and Settings tabs. Choose between prompt or silent interception mode, URL-exact or domain-level matching, and toggle the feature on/off.
 
 ## Installation
 
@@ -55,7 +55,7 @@ When you navigate to a URL that's already open:
 
 ### Settings
 
-Right-click the TypeTab icon > **Options** to configure:
+Click the TypeTab toolbar icon and switch to the **Settings** tab:
 - Enable/disable interception
 - Switch between prompt and silent mode
 - Choose URL-exact or domain-level matching
@@ -72,7 +72,7 @@ TypeTab/
 │   ├── content.js           # Spotlight UI (Shadow DOM)
 │   └── content.css
 ├── popup/
-│   ├── popup.html           # Fallback search for restricted pages
+│   ├── popup.html           # Popup UI (Search + Settings tabs)
 │   └── popup.js
 ├── options/
 │   ├── options.html         # Settings page

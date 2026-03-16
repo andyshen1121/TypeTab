@@ -1,10 +1,32 @@
 'use strict';
 
+// ===== Tab 切换 =====
+
+function initTabs() {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tabName = btn.dataset.tab;
+      // 切换按钮状态
+      tabBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      // 切换内容
+      document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      // 切换到搜索页时聚焦输入框
+      if (tabName === 'search') {
+        document.getElementById('search-input').focus();
+      }
+    });
+  });
+}
+
+// ===== 搜索功能 =====
+
 let tabCache = [];
 let selectedIndex = 0;
 let debounceTimer = null;
 
-// 搜索算法（与 content.js 一致）
 function searchTabs(tabs, query, maxResults = 20) {
   if (!query || !query.trim()) {
     return tabs.slice(0, maxResults);
@@ -82,8 +104,7 @@ function updateSelection(newIndex) {
   items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
 }
 
-// 初始化
-document.addEventListener('DOMContentLoaded', () => {
+function initSearch() {
   const input = document.getElementById('search-input');
 
   // 加载 Tab 列表
@@ -122,4 +143,57 @@ document.addEventListener('DOMContentLoaded', () => {
       window.close();
     }
   });
+}
+
+// ===== 设置功能 =====
+
+const DEFAULT_SETTINGS = {
+  interceptEnabled: true,
+  interceptMode: 'prompt',
+  matchRule: 'exact_url',
+};
+
+function loadSettings() {
+  chrome.storage.sync.get(DEFAULT_SETTINGS, (settings) => {
+    document.getElementById('interceptEnabled').checked = settings.interceptEnabled;
+    document.getElementById('interceptMode').value = settings.interceptMode;
+    document.getElementById('matchRule').value = settings.matchRule;
+  });
+}
+
+function saveSettings() {
+  const settings = {
+    interceptEnabled: document.getElementById('interceptEnabled').checked,
+    interceptMode: document.getElementById('interceptMode').value,
+    matchRule: document.getElementById('matchRule').value,
+  };
+  chrome.storage.sync.set(settings, () => {
+    showToast();
+  });
+}
+
+function showToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1200);
+}
+
+function initSettings() {
+  loadSettings();
+
+  document.getElementById('interceptEnabled').addEventListener('change', saveSettings);
+  document.getElementById('interceptMode').addEventListener('change', saveSettings);
+  document.getElementById('matchRule').addEventListener('change', saveSettings);
+
+  document.getElementById('shortcut-btn').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+  });
+}
+
+// ===== 初始化 =====
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  initSearch();
+  initSettings();
 });

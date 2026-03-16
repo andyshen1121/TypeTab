@@ -8,9 +8,9 @@
 
 ## 功能特性
 
-- **Spotlight 搜索** - 按 `Ctrl+Shift+K`（Mac: `Cmd+Shift+K`）唤起 Spotlight 风格的搜索浮层，按标题或 URL 模糊搜索已打开的标签页。
-- **重复标签页拦截** - 当你打开一个已经存在的页面时，TypeTab 会提示你切换到已有标签页，或自动静默切换。
-- **可配置设置** - 支持提示/静默拦截模式、URL 精确/域名匹配规则，可随时开关。
+- **Spotlight 搜索** - 按 `Ctrl+Shift+K`（Mac: `Cmd+Shift+K`）唤起 Spotlight 风格的搜索浮层，按标题或 URL 模糊搜索已打开的标签页。受限页面（如 `chrome://`）自动回退到 Popup 搜索。
+- **重复标签页拦截** - 打开已存在的页面时即时检测，可提示切换或自动静默切换。静默模式在页面加载前即完成切换。
+- **可配置设置** - 点击工具栏图标即可在搜索和设置之间切换。支持提示/静默拦截模式、URL 精确/域名匹配规则，可随时开关。
 
 ## 安装
 
@@ -55,7 +55,7 @@
 
 ### 设置
 
-右键 TypeTab 图标 > **选项**进行配置：
+点击工具栏 TypeTab 图标，切换到**设置** tab：
 - 开启/关闭拦截功能
 - 切换提示模式和静默模式
 - 选择 URL 精确匹配或域名匹配
@@ -72,7 +72,7 @@ TypeTab/
 │   ├── content.js           # Spotlight UI（Shadow DOM）
 │   └── content.css
 ├── popup/
-│   ├── popup.html           # 受限页面兜底搜索
+│   ├── popup.html           # Popup 界面（搜索 + 设置双 tab）
 │   └── popup.js
 ├── options/
 │   ├── options.html         # 设置页面
