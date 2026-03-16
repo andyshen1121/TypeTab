@@ -3,6 +3,22 @@ import { isDuplicate } from '../lib/search.js';
 // TypeTab Service Worker
 'use strict';
 
+// ===== 扩展安装/重载时，向已有页面注入 Content Script =====
+
+chrome.runtime.onInstalled.addListener(async () => {
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('about:') ||
+        tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) continue;
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/content.js'] });
+      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content/content.css'] });
+    } catch (e) {
+      // 某些页面可能无法注入，忽略
+    }
+  }
+});
+
 // ===== 快捷键命令处理 =====
 
 chrome.commands.onCommand.addListener(async (command) => {

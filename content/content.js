@@ -1,12 +1,12 @@
-// 防止重复注入
-if (window.__typetab_loaded) {
-  // 如果已加载，只处理来自 Service Worker 的消息
-} else {
-  window.__typetab_loaded = true;
-}
-
 (function () {
   'use strict';
+
+  // 清理旧实例（扩展重载后重新注入时）
+  if (window.__typetab_messageHandler) {
+    try { chrome.runtime.onMessage.removeListener(window.__typetab_messageHandler); } catch (e) {}
+  }
+  const oldHost = document.getElementById('typetab-spotlight-host');
+  if (oldHost) oldHost.remove();
 
   let spotlightOpen = false;
   let shadowRoot = null;
@@ -49,15 +49,17 @@ if (window.__typetab_loaded) {
   }
 
   function createSpotlight() {
-    // 创建宿主容器
-    container = document.createElement('div');
-    container.id = 'typetab-spotlight-host';
-    document.body.appendChild(container);
+    if (!container) {
+      // 首次创建宿主容器和 Shadow DOM
+      container = document.createElement('div');
+      container.id = 'typetab-spotlight-host';
+      document.body.appendChild(container);
+      shadowRoot = container.attachShadow({ mode: 'closed' });
+    }
 
-    // Shadow DOM 隔离
-    shadowRoot = container.attachShadow({ mode: 'closed' });
+    // 重建 Shadow DOM 内容（Spotlight UI + 所有样式）
     shadowRoot.innerHTML = `
-      <style>${getStyles()}</style>
+      <style>${getStyles()} ${getDuplicatePromptStyles()}</style>
       <div class="overlay" id="overlay">
         <div class="spotlight">
           <div class="search-box">
@@ -255,7 +257,8 @@ if (window.__typetab_loaded) {
     if (spotlightOpen) return;
     spotlightOpen = true;
 
-    if (!container) {
+    // 如果 Spotlight DOM 还没创建（可能 container 被 showDuplicatePrompt 先创建了）
+    if (!container || !shadowRoot.getElementById('overlay')) {
       createSpotlight();
     }
 
@@ -337,16 +340,19 @@ if (window.__typetab_loaded) {
   }
 
   // 监听来自 Service Worker 的消息
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  function messageHandler(message, sender, sendResponse) {
     if (message.type === 'OPEN_SPOTLIGHT') {
-      openSpotlight();
+      try { openSpotlight(); } catch (err) { console.error('[TypeTab]', err); }
       sendResponse({ success: true });
     } else if (message.type === 'SHOW_DUPLICATE_PROMPT') {
-      showDuplicatePrompt(message.existingTabId, message.newTabId, message.title);
+      try { showDuplicatePrompt(message.existingTabId, message.newTabId, message.title); } catch (err) { console.error('[TypeTab]', err); }
       sendResponse({ success: true });
     }
     return true;
-  });
+  }
+  // 存储引用以便重入时清理旧监听器
+  window.__typetab_messageHandler = messageHandler;
+  chrome.runtime.onMessage.addListener(messageHandler);
 
   // 重复 Tab 提示条
   function showDuplicatePrompt(existingTabId, newTabId, title) {
