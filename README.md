@@ -1,3 +1,5 @@
+[中文](README_zh.md) | English
+
 # TypeTab
 
 A Chrome extension for quick tab search and duplicate tab management.
