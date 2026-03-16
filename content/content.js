@@ -343,8 +343,112 @@ if (window.__typetab_loaded) {
     return true;
   });
 
-  // 重复 Tab 提示条（Task 5 中实现细节）
+  // 重复 Tab 提示条
   function showDuplicatePrompt(existingTabId, newTabId, title) {
-    // 将在 Task 5 中实现
+    // 如果已有提示条，先移除
+    const existingPrompt = shadowRoot?.querySelector('.duplicate-prompt');
+    if (existingPrompt) existingPrompt.remove();
+
+    // 创建提示条容器（如果 Shadow DOM 还没创建）
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'typetab-spotlight-host';
+      document.body.appendChild(container);
+      shadowRoot = container.attachShadow({ mode: 'closed' });
+      shadowRoot.innerHTML = `<style>${getStyles()} ${getDuplicatePromptStyles()}</style>`;
+    } else if (!shadowRoot.querySelector('style[data-dup]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-dup', '');
+      style.textContent = getDuplicatePromptStyles();
+      shadowRoot.appendChild(style);
+    }
+
+    const prompt = document.createElement('div');
+    prompt.className = 'duplicate-prompt';
+    prompt.innerHTML = `
+      <div class="dup-content">
+        <span class="dup-text">"${escapeHtml(title)}" 已在其他标签页中打开</span>
+        <div class="dup-actions">
+          <button class="dup-btn dup-btn-switch" id="dup-switch">切换</button>
+          <button class="dup-btn dup-btn-keep" id="dup-keep">保留</button>
+        </div>
+      </div>
+    `;
+    shadowRoot.appendChild(prompt);
+
+    prompt.querySelector('#dup-switch').addEventListener('click', () => {
+      chrome.runtime.sendMessage({
+        type: 'DUPLICATE_ACTION',
+        action: 'switch',
+        existingTabId,
+        newTabId,
+      });
+      prompt.remove();
+    });
+
+    prompt.querySelector('#dup-keep').addEventListener('click', () => {
+      prompt.remove();
+    });
+
+    // 5 秒后自动消失
+    setTimeout(() => {
+      if (prompt.parentNode) prompt.remove();
+    }, 5000);
+  }
+
+  function getDuplicatePromptStyles() {
+    return `
+      .duplicate-prompt {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 2147483647;
+        background: #1e1e2e;
+        border: 1px solid #3e3e4e;
+        border-radius: 8px;
+        padding: 12px 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        animation: slideIn 0.2s ease-out;
+        max-width: 400px;
+      }
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      .dup-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .dup-text {
+        color: #e0e0e0;
+        font-size: 13px;
+        flex: 1;
+      }
+      .dup-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .dup-btn {
+        padding: 4px 12px;
+        border-radius: 4px;
+        border: none;
+        font-size: 13px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .dup-btn-switch {
+        background: #4285f4;
+        color: white;
+      }
+      .dup-btn-switch:hover { background: #3b78e7; }
+      .dup-btn-keep {
+        background: #3e3e4e;
+        color: #e0e0e0;
+      }
+      .dup-btn-keep:hover { background: #4e4e5e; }
+    `;
   }
 })();
