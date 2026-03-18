@@ -9,8 +9,9 @@ When you have dozens of tabs open, TypeTab helps you find and switch to the righ
 ## Features
 
 - **Spotlight Search** - Press `Ctrl+Shift+K` (Mac: `Cmd+Shift+K`) to open a Spotlight-style search overlay. Search by tab title or URL with fuzzy matching. On restricted pages (e.g. `chrome://`), falls back to a popup search.
-- **Duplicate Tab Detection** - When you navigate to a URL that's already open, TypeTab detects it instantly and can prompt you to switch or silently redirect. Silent mode acts before the page even loads.
-- **Configurable Settings** - Click the toolbar icon to access Search and Settings tabs. Choose between prompt or silent interception mode, URL-exact or domain-level matching, and toggle the feature on/off.
+- **Keyboard Tab Management** - Navigate results with `Arrow Up/Down`, switch with `Enter`, and close the selected tab with `Ctrl+Backspace` (Mac: `Cmd+Backspace`). The close shortcut is fully customizable.
+- **Duplicate Tab Detection** - When you open a URL that's already open in another tab, TypeTab detects it and can prompt you to switch or silently redirect. In-page navigation within the same site is never interrupted.
+- **Configurable Settings** - Click the toolbar icon to access Search and Settings tabs. Choose between prompt or silent interception mode, URL-exact or domain-level matching, and customize keyboard shortcuts.
 
 ## Installation
 
@@ -46,6 +47,7 @@ When you have dozens of tabs open, TypeTab helps you find and switch to the righ
 1. Press `Ctrl+Shift+K` (Mac: `Cmd+Shift+K`) to open the search overlay
 2. Type keywords to filter open tabs by title or URL
 3. Use `Arrow Up/Down` to navigate, `Enter` to switch, `Esc` to close
+4. Press `Ctrl+Backspace` (Mac: `Cmd+Backspace`) to close the selected tab
 
 ### Duplicate Tab Interception
 
@@ -59,7 +61,8 @@ Click the TypeTab toolbar icon and switch to the **Settings** tab:
 - Enable/disable interception
 - Switch between prompt and silent mode
 - Choose URL-exact or domain-level matching
-- Customize the keyboard shortcut via `chrome://extensions/shortcuts`
+- Customize the **close tab shortcut** (click the shortcut button and press a new key combo)
+- Customize the **search shortcut** via `chrome://extensions/shortcuts`
 
 ## Project Structure
 
