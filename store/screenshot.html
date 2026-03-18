@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1280px;
+    height: 800px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+  }
+  .title-area {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .title-area h1 {
+    color: white;
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+  .title-area p {
+    color: rgba(255,255,255,0.85);
+    font-size: 18px;
+  }
+  .spotlight-mock {
+    background: #1e1e2e;
+    border-radius: 14px;
+    width: 620px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #2e2e3e;
+    gap: 10px;
+  }
+  .search-icon { color: #888; }
+  .search-text {
+    color: #e0e0e0;
+    font-size: 16px;
+    flex: 1;
+  }
+  .search-text span { color: #666; }
+  .esc {
+    background: #2e2e3e;
+    color: #888;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .result-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 18px;
+    gap: 10px;
+    cursor: default;
+  }
+  .result-item.selected { background: #2e2e3e; }
+  .favicon {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .fav-google { background: #4285f4; color: white; }
+  .fav-github { background: #24292e; color: white; }
+  .fav-stack { background: #f48024; color: white; }
+  .fav-mdn { background: #1a1a2e; color: #83cdff; }
+  .fav-npm { background: #cb3837; color: white; }
+  .info { flex: 1; overflow: hidden; }
+  .tab-title {
+    color: #e0e0e0;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tab-url {
+    color: #666;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .shortcut-hint {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+  }
+  kbd {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    color: white;
+  }
+</style>
+</head>
+<body>
+  <div class="title-area">
+    <h1>TypeTab</h1>
+    <p>Find any tab instantly. Detect duplicates automatically.</p>
+  </div>
+  <div class="spotlight-mock">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <div class="search-text">git<span>hub</span></div>
+      <span class="esc">ESC</span>
+    </div>
+    <div class="result-item selected">
+      <div class="favicon fav-github">G</div>
+      <div class="info">
+        <div class="tab-title">andyshen1121/TypeTab: Quick tab search</div>
+        <div class="tab-url">https://github.com/andyshen1121/TypeTab</div>
+      </div>
+    </div>
+    <div class="result-item">
+      <div class="favicon fav-github">G</div>
+      <div class="info">
+        <div class="tab-title">GitHub - Pull requests</div>
+        <div class="tab-url">https://github.com/pulls</div>
+      </div>
+    </div>
+    <div class="result-item">
+      <div class="favicon fav-stack">S</div>
+      <div class="info">
+        <div class="tab-title">How to manage Chrome tabs programmatically</div>
+        <div class="tab-url">https://stackoverflow.com/questions/12345678</div>
+      </div>
+    </div>
+    <div class="result-item">
+      <div class="favicon fav-mdn">M</div>
+      <div class="info">
+        <div class="tab-title">Shadow DOM - Web APIs | MDN</div>
+        <div class="tab-url">https://developer.mozilla.org/en-US/docs/Web/API/Shadow_DOM</div>
+      </div>
+    </div>
+    <div class="result-item">
+      <div class="favicon fav-npm">N</div>
+      <div class="info">
+        <div class="tab-title">chrome-types - npm</div>
+        <div class="tab-url">https://www.npmjs.com/package/chrome-types</div>
+      </div>
+    </div>
+  </div>
+  <div class="shortcut-hint">
+    <kbd>Cmd+Shift+K</kbd> to search &nbsp;&middot;&nbsp; Arrow keys to navigate &nbsp;&middot;&nbsp; Enter to switch
+  </div>
+</body>
+</html>

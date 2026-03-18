@@ -3,12 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    /* ===== Anti-flash: 在 JS 加载前根据系统偏好设置主题 ===== */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        --tt-bg-primary: #1e1e2e;
+        --tt-bg-secondary: #2e2e3e;
+        --tt-bg-tertiary: #3e3e4e;
+        --tt-bg-tertiary-hover: #4e4e5e;
+        --tt-bg-card: #1e1e2e;
+        --tt-text-primary: #e0e0e0;
+        --tt-text-secondary: #888;
+        --tt-text-muted: #666;
+        --tt-text-hover: #ccc;
+        --tt-border: #2e2e3e;
+        --tt-border-light: #3e3e4e;
+        --tt-accent: #4285f4;
+        --tt-accent-hover: #3b78e7;
+        --tt-overlay-bg: rgba(0,0,0,0.5);
+        --tt-select-bg: #2e2e3e;
+        --tt-select-border: #3e3e4e;
+        --tt-toggle-off: #3e3e4e;
+        --tt-toast-bg: #4285f4;
+        --tt-scrollbar: #3e3e4e;
+        --tt-shadow: rgba(0,0,0,0.4);
+      }
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme]) {
+        --tt-bg-primary: #fafafa;
+        --tt-bg-secondary: #f0f0f0;
+        --tt-bg-tertiary: #e0e0e0;
+        --tt-bg-tertiary-hover: #d0d0d0;
+        --tt-bg-card: #ffffff;
+        --tt-text-primary: #333;
+        --tt-text-secondary: #888;
+        --tt-text-muted: #999;
+        --tt-text-hover: #555;
+        --tt-border: #e0e0e0;
+        --tt-border-light: #ddd;
+        --tt-accent: #4285f4;
+        --tt-accent-hover: #3b78e7;
+        --tt-overlay-bg: rgba(0,0,0,0.3);
+        --tt-select-bg: #fff;
+        --tt-select-border: #ddd;
+        --tt-toggle-off: #ccc;
+        --tt-toast-bg: #333;
+        --tt-scrollbar: #ccc;
+        --tt-shadow: rgba(0,0,0,0.12);
+      }
+    }
+
+    /* ===== 深色主题 ===== */
+    [data-theme="dark"] {
+      --tt-bg-primary: #1e1e2e;
+      --tt-bg-secondary: #2e2e3e;
+      --tt-bg-tertiary: #3e3e4e;
+      --tt-bg-tertiary-hover: #4e4e5e;
+      --tt-bg-card: #1e1e2e;
+      --tt-text-primary: #e0e0e0;
+      --tt-text-secondary: #888;
+      --tt-text-muted: #666;
+      --tt-text-hover: #ccc;
+      --tt-border: #2e2e3e;
+      --tt-border-light: #3e3e4e;
+      --tt-accent: #4285f4;
+      --tt-accent-hover: #3b78e7;
+      --tt-overlay-bg: rgba(0,0,0,0.5);
+      --tt-select-bg: #2e2e3e;
+      --tt-select-border: #3e3e4e;
+      --tt-toggle-off: #3e3e4e;
+      --tt-toast-bg: #4285f4;
+      --tt-scrollbar: #3e3e4e;
+      --tt-shadow: rgba(0,0,0,0.4);
+    }
+
+    /* ===== 浅色主题 ===== */
+    [data-theme="light"] {
+      --tt-bg-primary: #fafafa;
+      --tt-bg-secondary: #f0f0f0;
+      --tt-bg-tertiary: #e0e0e0;
+      --tt-bg-tertiary-hover: #d0d0d0;
+      --tt-bg-card: #ffffff;
+      --tt-text-primary: #333;
+      --tt-text-secondary: #888;
+      --tt-text-muted: #999;
+      --tt-text-hover: #555;
+      --tt-border: #e0e0e0;
+      --tt-border-light: #ddd;
+      --tt-accent: #4285f4;
+      --tt-accent-hover: #3b78e7;
+      --tt-overlay-bg: rgba(0,0,0,0.3);
+      --tt-select-bg: #fff;
+      --tt-select-border: #ddd;
+      --tt-toggle-off: #ccc;
+      --tt-toast-bg: #333;
+      --tt-scrollbar: #ccc;
+      --tt-shadow: rgba(0,0,0,0.12);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       width: 380px;
       max-height: 520px;
-      background: #1e1e2e;
-      color: #e0e0e0;
+      background: var(--tt-bg-primary);
+      color: var(--tt-text-primary);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow: hidden;
       display: flex;
@@ -18,7 +116,7 @@
     /* ===== Tab Bar ===== */
     .tab-bar {
       display: flex;
-      border-bottom: 1px solid #2e2e3e;
+      border-bottom: 1px solid var(--tt-border);
       flex-shrink: 0;
     }
     .tab-btn {
@@ -29,15 +127,15 @@
       gap: 5px;
       padding: 10px 0;
       font-size: 13px;
-      color: #888;
+      color: var(--tt-text-secondary);
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
       cursor: pointer;
       transition: color 0.2s, border-color 0.2s;
     }
-    .tab-btn:hover { color: #ccc; }
-    .tab-btn.active { color: #4285f4; border-bottom-color: #4285f4; }
+    .tab-btn:hover { color: var(--tt-text-hover); }
+    .tab-btn.active { color: var(--tt-accent); border-bottom-color: var(--tt-accent); }
     .tab-btn svg { flex-shrink: 0; }
 
     /* ===== Tab Content ===== */
@@ -55,21 +153,21 @@
       display: flex;
       align-items: center;
       padding: 12px 14px;
-      border-bottom: 1px solid #2e2e3e;
+      border-bottom: 1px solid var(--tt-border);
       gap: 8px;
       flex-shrink: 0;
     }
-    .search-icon { color: #888; flex-shrink: 0; }
+    .search-icon { color: var(--tt-text-secondary); flex-shrink: 0; }
     .search-box input {
       flex: 1;
       background: none;
       border: none;
       outline: none;
-      color: #e0e0e0;
+      color: var(--tt-text-primary);
       font-size: 15px;
-      caret-color: #4285f4;
+      caret-color: var(--tt-accent);
     }
-    .search-box input::placeholder { color: #666; }
+    .search-box input::placeholder { color: var(--tt-text-muted); }
     .results {
       flex: 1;
       overflow-y: auto;
@@ -77,7 +175,7 @@
     }
     .results::-webkit-scrollbar { width: 5px; }
     .results::-webkit-scrollbar-track { background: transparent; }
-    .results::-webkit-scrollbar-thumb { background: #3e3e4e; border-radius: 3px; }
+    .results::-webkit-scrollbar-thumb { background: var(--tt-scrollbar); border-radius: 3px; }
     .result-item {
       display: flex;
       align-items: center;
@@ -85,7 +183,7 @@
       cursor: pointer;
       gap: 8px;
     }
-    .result-item:hover, .result-item.selected { background: #2e2e3e; }
+    .result-item:hover, .result-item.selected { background: var(--tt-bg-secondary); }
     .favicon {
       width: 18px;
       height: 18px;
@@ -97,12 +195,12 @@
       width: 18px;
       height: 18px;
       border-radius: 3px;
-      background: #3e3e4e;
+      background: var(--tt-bg-tertiary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 10px;
-      color: #888;
+      color: var(--tt-text-secondary);
       flex-shrink: 0;
     }
     .info { flex: 1; overflow: hidden; }
@@ -113,7 +211,7 @@
       text-overflow: ellipsis;
     }
     .url {
-      color: #666;
+      color: var(--tt-text-muted);
       font-size: 11px;
       white-space: nowrap;
       overflow: hidden;
@@ -122,8 +220,48 @@
     .no-results {
       padding: 20px 14px;
       text-align: center;
-      color: #666;
+      color: var(--tt-text-muted);
       font-size: 13px;
+    }
+
+    /* ===== Close Button ===== */
+    .close-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--tt-text-secondary);
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .close-btn:hover {
+      background: var(--tt-bg-tertiary);
+      color: var(--tt-text-primary);
+    }
+    .result-item:hover .close-btn { display: flex; }
+    .result-item.selected .close-btn { display: flex; }
+
+    /* ===== Shortcut Key Button ===== */
+    .shortcut-key {
+      padding: 4px 10px;
+      border: 1px solid var(--tt-select-border);
+      border-radius: 4px;
+      font-size: 12px;
+      background: var(--tt-select-bg);
+      color: var(--tt-text-primary);
+      cursor: pointer;
+      min-width: 100px;
+      text-align: center;
+      font-family: inherit;
+    }
+    .shortcut-key.recording {
+      border-color: var(--tt-accent);
+      color: var(--tt-accent);
     }
 
     /* ===== Settings Tab ===== */
@@ -134,7 +272,7 @@
     }
     .section-title {
       font-size: 11px;
-      color: #888;
+      color: var(--tt-text-secondary);
       letter-spacing: 0.5px;
       margin: 14px 0 8px;
     }
@@ -144,57 +282,57 @@
       justify-content: space-between;
       padding: 10px 0;
     }
-    .setting-row + .setting-row { border-top: 1px solid #2e2e3e; }
+    .setting-row + .setting-row { border-top: 1px solid var(--tt-border); }
     .setting-label { font-size: 13px; }
-    .setting-desc { font-size: 11px; color: #666; margin-top: 2px; }
+    .setting-desc { font-size: 11px; color: var(--tt-text-muted); margin-top: 2px; }
     /* Toggle */
     .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .toggle .slider {
       position: absolute; cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: #3e3e4e; border-radius: 11px; transition: 0.2s;
+      background: var(--tt-toggle-off); border-radius: 11px; transition: 0.2s;
     }
     .toggle .slider::before {
       content: ''; position: absolute;
       width: 18px; height: 18px; left: 2px; bottom: 2px;
       background: white; border-radius: 50%; transition: 0.2s;
     }
-    .toggle input:checked + .slider { background: #4285f4; }
+    .toggle input:checked + .slider { background: var(--tt-accent); }
     .toggle input:checked + .slider::before { transform: translateX(18px); }
     /* Select */
     select {
       padding: 5px 8px;
-      border: 1px solid #3e3e4e;
+      border: 1px solid var(--tt-select-border);
       border-radius: 4px;
       font-size: 12px;
-      background: #2e2e3e;
-      color: #e0e0e0;
+      background: var(--tt-select-bg);
+      color: var(--tt-text-primary);
       cursor: pointer;
       outline: none;
     }
-    select:focus { border-color: #4285f4; }
+    select:focus { border-color: var(--tt-accent); }
     /* Button */
     .shortcut-btn {
       display: block;
       width: 100%;
       margin-top: 8px;
       padding: 8px;
-      background: #4285f4;
+      background: var(--tt-accent);
       color: white;
       border: none;
       border-radius: 6px;
       font-size: 13px;
       cursor: pointer;
     }
-    .shortcut-btn:hover { background: #3b78e7; }
+    .shortcut-btn:hover { background: var(--tt-accent-hover); }
     /* Toast */
     .toast {
       position: fixed;
       bottom: 12px;
       left: 50%;
       transform: translateX(-50%);
-      background: #4285f4;
+      background: var(--tt-toast-bg);
       color: white;
       padding: 6px 16px;
       border-radius: 4px;
@@ -238,6 +376,18 @@
   <!-- Settings Tab -->
   <div class="tab-content" id="tab-settings">
     <div class="settings-content">
+      <div class="section-title">外观</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">主题模式</div>
+          <div class="setting-desc">选择界面的颜色方案</div>
+        </div>
+        <select id="themeMode">
+          <option value="system">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </div>
       <div class="section-title">重复标签页拦截</div>
       <div class="setting-row">
         <div>
@@ -275,6 +425,13 @@
           <div class="setting-label">搜索快捷键</div>
           <div class="setting-desc">Ctrl+Shift+K (Mac: Cmd+Shift+K)</div>
         </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">关闭标签页</div>
+          <div class="setting-desc">在搜索结果中关闭选中的标签页</div>
+        </div>
+        <button class="shortcut-key" id="closeTabShortcut">Ctrl + Backspace</button>
       </div>
       <button class="shortcut-btn" id="shortcut-btn">修改快捷键</button>
     </div>

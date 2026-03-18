@@ -74,6 +74,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
+  if (message.type === 'CLOSE_TAB') {
+    chrome.tabs.remove(message.tabId).then(() => {
+      sendResponse({ success: true });
+    }).catch((err) => {
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
   if (message.type === 'DUPLICATE_ACTION') {
     if (message.action === 'switch') {
       chrome.tabs.update(message.existingTabId, { active: true }).then((tab) => {
@@ -96,19 +105,13 @@ function isInternalUrl(url) {
     url.startsWith('brave://');
 }
 
-// 记录每个 tab 已知的 URL，用于区分「导航」和「刷新」
-const lastKnownUrls = new Map();
+// 记录新建的标签页 ID（只有新建标签才做重复检测）
+const newlyCreatedTabs = new Set();
 // 提示模式下，Content Script 未就绪时暂存的重复信息
 const pendingPrompts = new Map();
 
-// 启动时加载所有已打开 tab 的 URL
-const initPromise = chrome.tabs.query({}).then((tabs) => {
-  for (const tab of tabs) {
-    if (tab.url && !isInternalUrl(tab.url)) {
-      lastKnownUrls.set(tab.id, tab.url);
-    }
-  }
-});
+// 启动时无需初始化——仅拦截新打开的标签页
+const initPromise = Promise.resolve();
 
 // 发送重复提示到 Content Script，失败则回退到系统通知
 async function sendDuplicatePrompt(tabId, existingTab) {
@@ -153,14 +156,20 @@ async function sendDuplicatePrompt(tabId, existingTab) {
   }
 }
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // ── URL 变化时：立即检测重复 ──
-  if (changeInfo.url && !isInternalUrl(changeInfo.url)) {
-    await initPromise;
+// 监听新建标签页事件
+chrome.tabs.onCreated.addListener((tab) => {
+  newlyCreatedTabs.add(tab.id);
+});
 
-    const lastUrl = lastKnownUrls.get(tabId);
-    lastKnownUrls.set(tabId, changeInfo.url);
-    if (lastUrl === changeInfo.url) return;
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  // ── URL 变化时：立即检测重复（仅限新建标签页）──
+  if (changeInfo.url && !isInternalUrl(changeInfo.url)) {
+    // 非新建标签页的导航（如同域内页面跳转）不做拦截
+    if (!newlyCreatedTabs.has(tabId)) return;
+    // 检测过一次后移除，防止同一标签后续导航再触发
+    newlyCreatedTabs.delete(tabId);
+
+    await initPromise;
 
     const settings = await chrome.storage.sync.get({
       interceptEnabled: true,
@@ -216,6 +225,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 // Tab 关闭时清理
 chrome.tabs.onRemoved.addListener((tabId) => {
-  lastKnownUrls.delete(tabId);
+  newlyCreatedTabs.delete(tabId);
   pendingPrompts.delete(tabId);
 });

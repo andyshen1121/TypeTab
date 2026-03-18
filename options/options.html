@@ -4,14 +4,101 @@
   <meta charset="UTF-8">
   <title>TypeTab Settings</title>
   <style>
+    /* 防闪烁: 在 JS 加载前根据系统偏好设置主题 */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --tt-bg-primary: #1e1e2e;
+        --tt-bg-secondary: #2e2e3e;
+        --tt-bg-tertiary: #3e3e4e;
+        --tt-bg-tertiary-hover: #4e4e5e;
+        --tt-bg-card: #1e1e2e;
+        --tt-text-primary: #e0e0e0;
+        --tt-text-secondary: #888;
+        --tt-text-muted: #666;
+        --tt-text-hover: #ccc;
+        --tt-border: #2e2e3e;
+        --tt-border-light: #3e3e4e;
+        --tt-accent: #4285f4;
+        --tt-accent-hover: #3b78e7;
+        --tt-select-bg: #2e2e3e;
+        --tt-select-border: #3e3e4e;
+        --tt-toggle-off: #3e3e4e;
+        --tt-toast-bg: #4285f4;
+        --tt-shadow: rgba(0,0,0,0.4);
+      }
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --tt-bg-primary: #fafafa;
+        --tt-bg-secondary: #f0f0f0;
+        --tt-bg-tertiary: #e0e0e0;
+        --tt-bg-tertiary-hover: #d0d0d0;
+        --tt-bg-card: #ffffff;
+        --tt-text-primary: #333;
+        --tt-text-secondary: #888;
+        --tt-text-muted: #999;
+        --tt-text-hover: #555;
+        --tt-border: #e0e0e0;
+        --tt-border-light: #ddd;
+        --tt-accent: #4285f4;
+        --tt-accent-hover: #3b78e7;
+        --tt-select-bg: #fff;
+        --tt-select-border: #ddd;
+        --tt-toggle-off: #ccc;
+        --tt-toast-bg: #333;
+        --tt-shadow: rgba(0,0,0,0.12);
+      }
+    }
+
+    [data-theme="dark"] {
+      --tt-bg-primary: #1e1e2e;
+      --tt-bg-secondary: #2e2e3e;
+      --tt-bg-tertiary: #3e3e4e;
+      --tt-bg-tertiary-hover: #4e4e5e;
+      --tt-bg-card: #1e1e2e;
+      --tt-text-primary: #e0e0e0;
+      --tt-text-secondary: #888;
+      --tt-text-muted: #666;
+      --tt-text-hover: #ccc;
+      --tt-border: #2e2e3e;
+      --tt-border-light: #3e3e4e;
+      --tt-accent: #4285f4;
+      --tt-accent-hover: #3b78e7;
+      --tt-select-bg: #2e2e3e;
+      --tt-select-border: #3e3e4e;
+      --tt-toggle-off: #3e3e4e;
+      --tt-toast-bg: #4285f4;
+      --tt-shadow: rgba(0,0,0,0.4);
+    }
+    [data-theme="light"] {
+      --tt-bg-primary: #fafafa;
+      --tt-bg-secondary: #f0f0f0;
+      --tt-bg-tertiary: #e0e0e0;
+      --tt-bg-tertiary-hover: #d0d0d0;
+      --tt-bg-card: #ffffff;
+      --tt-text-primary: #333;
+      --tt-text-secondary: #888;
+      --tt-text-muted: #999;
+      --tt-text-hover: #555;
+      --tt-border: #e0e0e0;
+      --tt-border-light: #ddd;
+      --tt-accent: #4285f4;
+      --tt-accent-hover: #3b78e7;
+      --tt-select-bg: #fff;
+      --tt-select-border: #ddd;
+      --tt-toggle-off: #ccc;
+      --tt-toast-bg: #333;
+      --tt-shadow: rgba(0,0,0,0.12);
+    }
+
     * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       padding: 32px;
       max-width: 560px;
       margin: 0 auto;
-      color: #333;
-      background: #fafafa;
+      color: var(--tt-text-primary);
+      background: var(--tt-bg-primary);
     }
     h1 {
       font-size: 24px;
@@ -19,13 +106,13 @@
       font-weight: 600;
     }
     .subtitle {
-      color: #666;
+      color: var(--tt-text-muted);
       font-size: 14px;
       margin-bottom: 32px;
     }
     .setting-group {
-      background: white;
-      border: 1px solid #e0e0e0;
+      background: var(--tt-bg-card);
+      border: 1px solid var(--tt-border);
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 16px;
@@ -42,22 +129,23 @@
       padding: 8px 0;
     }
     .setting-row + .setting-row {
-      border-top: 1px solid #f0f0f0;
+      border-top: 1px solid var(--tt-bg-secondary);
     }
     .setting-label {
       font-size: 14px;
     }
     .setting-desc {
       font-size: 12px;
-      color: #888;
+      color: var(--tt-text-secondary);
       margin-top: 2px;
     }
     select {
       padding: 6px 12px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--tt-select-border);
       border-radius: 6px;
       font-size: 14px;
-      background: white;
+      background: var(--tt-select-bg);
+      color: var(--tt-text-primary);
       cursor: pointer;
     }
     .toggle {
@@ -77,7 +165,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: #ccc;
+      background: var(--tt-toggle-off);
       border-radius: 12px;
       transition: 0.2s;
     }
@@ -92,13 +180,13 @@
       border-radius: 50%;
       transition: 0.2s;
     }
-    .toggle input:checked + .slider { background: #4285f4; }
+    .toggle input:checked + .slider { background: var(--tt-accent); }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
     .shortcut-link {
       display: inline-block;
       margin-top: 16px;
       padding: 8px 16px;
-      background: #4285f4;
+      background: var(--tt-accent);
       color: white;
       border: none;
       border-radius: 6px;
@@ -106,12 +194,28 @@
       cursor: pointer;
       text-decoration: none;
     }
-    .shortcut-link:hover { background: #3b78e7; }
+    .shortcut-link:hover { background: var(--tt-accent-hover); }
+    .shortcut-key {
+      padding: 4px 10px;
+      border: 1px solid var(--tt-select-border);
+      border-radius: 4px;
+      font-size: 12px;
+      background: var(--tt-select-bg);
+      color: var(--tt-text-primary);
+      cursor: pointer;
+      min-width: 100px;
+      text-align: center;
+      font-family: inherit;
+    }
+    .shortcut-key.recording {
+      border-color: var(--tt-accent);
+      color: var(--tt-accent);
+    }
     .saved-toast {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #333;
+      background: var(--tt-toast-bg);
       color: white;
       padding: 10px 20px;
       border-radius: 6px;
@@ -125,6 +229,21 @@
 <body>
   <h1>TypeTab Settings</h1>
   <p class="subtitle">管理标签页搜索和重复拦截的设置</p>
+
+  <div class="setting-group">
+    <h2>外观</h2>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">主题模式</div>
+        <div class="setting-desc">选择界面的颜色方案</div>
+      </div>
+      <select id="themeMode">
+        <option value="system">跟随系统</option>
+        <option value="light">浅色</option>
+        <option value="dark">深色</option>
+      </select>
+    </div>
+  </div>
 
   <div class="setting-group">
     <h2>重复标签页拦截</h2>
@@ -167,6 +286,13 @@
         <div class="setting-label">搜索快捷键</div>
         <div class="setting-desc">在 Chrome 快捷键设置中修改</div>
       </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">关闭标签页</div>
+        <div class="setting-desc">在搜索结果中关闭选中的标签页</div>
+      </div>
+      <button class="shortcut-key" id="closeTabShortcut">Ctrl + Backspace</button>
     </div>
     <button class="shortcut-link" id="shortcut-btn">修改快捷键</button>
   </div>
