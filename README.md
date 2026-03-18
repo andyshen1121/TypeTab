@@ -9,9 +9,10 @@ When you have dozens of tabs open, TypeTab helps you find and switch to the righ
 ## Features
 
 - **Spotlight Search** - Press `Ctrl+Shift+K` (Mac: `Cmd+Shift+K`) to open a Spotlight-style search overlay. Search by tab title or URL with fuzzy matching. On restricted pages (e.g. `chrome://`), falls back to a popup search.
-- **Keyboard Tab Management** - Navigate results with `Arrow Up/Down`, switch with `Enter`, and close the selected tab with `Ctrl+Backspace` (Mac: `Cmd+Backspace`). The close shortcut is fully customizable.
+- **Close Tabs from Search** - Hover over any result to reveal a close button, or use a keyboard shortcut (`Ctrl+Backspace` / `Cmd+Backspace` by default) to close the selected tab without leaving the search overlay. The shortcut is fully customizable.
+- **Theme Support** - Choose between Light, Dark, or System (follows your OS setting) from the Settings tab.
 - **Duplicate Tab Detection** - When you open a URL that's already open in another tab, TypeTab detects it and can prompt you to switch or silently redirect. In-page navigation within the same site is never interrupted.
-- **Configurable Settings** - Click the toolbar icon to access Search and Settings tabs. Choose between prompt or silent interception mode, URL-exact or domain-level matching, and customize keyboard shortcuts.
+- **Configurable Settings** - Click the toolbar icon to access Search and Settings tabs. Choose between prompt or silent interception mode and URL-exact or domain-level matching.
 
 ## Installation
 
@@ -61,7 +62,8 @@ Click the TypeTab toolbar icon and switch to the **Settings** tab:
 - Enable/disable interception
 - Switch between prompt and silent mode
 - Choose URL-exact or domain-level matching
-- Customize the **close tab shortcut** (click the shortcut button and press a new key combo)
+- Set the **theme** (Light / Dark / System)
+- Customize the **close tab shortcut** (click the shortcut key button and press a new combo)
 - Customize the **search shortcut** via `chrome://extensions/shortcuts`
 
 ## Project Structure
